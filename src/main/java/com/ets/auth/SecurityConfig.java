@@ -90,6 +90,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/salary-management/**").permitAll()
                 .requestMatchers("/employee-salary-management/**").permitAll()
                 .requestMatchers("/api/notifications/**").permitAll()
+                .requestMatchers("/api/reports/**").permitAll()
+                .requestMatchers("/api/users/**").permitAll()
 
 
                 // ✅ ROLE BASED
