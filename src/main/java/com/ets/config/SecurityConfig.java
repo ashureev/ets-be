@@ -24,13 +24,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // ✅ Password Encoder
+    // Password Encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ InMemory Users
+    // InMemory Users
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
 
@@ -49,52 +49,60 @@ public class SecurityConfig {
         );
     }
 
-    // ✅ Authentication Provider
+    // Authentication Provider
     @Bean
     public DaoAuthenticationProvider authenticationProvider(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder) {
 
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
+
         return provider;
     }
 
-    // ✅ Authentication Manager
+    // Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // ✅ CORS CONFIGURATION (VERY IMPORTANT FIX)
+    // CORS Configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5174")); // React URL
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        configuration.setAllowedOrigins(List.of("http://localhost:5174"));
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
 
-    // ✅ Security Filter Chain
+    // Security Filter
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors(Customizer.withDefaults())   // enable CORS properly
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
+            .authenticationProvider(authenticationProvider(userDetailsService(passwordEncoder()), passwordEncoder()))
             .authorizeHttpRequests(auth -> auth
+
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/employee/**").hasRole("EMPLOYEE")
-                    .requestMatchers("/api/tasks/**").hasAnyRole("ADMIN", "EMPLOYEE")
-                    .requestMatchers("/api/departments/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                    .requestMatchers("/api/tasks/**").hasAnyRole("ADMIN","EMPLOYEE")
+                    .requestMatchers("/api/departments/**").hasAnyRole("ADMIN","EMPLOYEE")
+
                     .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults())

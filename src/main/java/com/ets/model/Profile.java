@@ -1,38 +1,35 @@
 package com.ets.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Data
-	@Table(name = "employee_profile")
-	public class Profile {
-	    @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private Long id;
+@Table(name = "employee_profile")
+public class Profile {
 
-	    @OneToOne
-	    @JoinColumn(name = "employee_id", nullable = false)
-	    private Employee employee;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	    private String profileImage;
-	    private String name;
-	    private String designation;
-	    private String systemName;
-	    private String cohort;
-	    private String location;
+    @OneToOne
+    @JoinColumn(name = "emp_id", nullable = false)
+    private Employee employee;
 
-	    private String email;
-	    private String phone;
-	    private String employeeId;
+    private String profileImage;
+    private String name;
+    private String designation;
+    private String systemName;
+    private String cohort;
+    private String location;
 
-	    private int attendance;
-	    private int codingScore;
+    private String email;
+    private String phone;
 
+    // renamed to avoid 
+@Column(name="employee_code")
+    private String employeeCode;
+
+    private int attendance;
+    private int codingScore;
 }
