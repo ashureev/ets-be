@@ -30,6 +30,7 @@ public class Employee {
 	private String email;
 	private String password;
 	
+	
 	 @Enumerated(EnumType.STRING)
 	    private Role role;// ADMIN or EMPLOYEE
 	 

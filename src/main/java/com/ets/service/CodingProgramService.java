@@ -13,6 +13,10 @@ public class CodingProgramService {
 
     @Autowired
     private CodingProgramRepository repository;
+    
+    public CodingProgramService(CodingProgramRepository repository) {
+    	this.repository= repository;
+    }
 
     public CodingProgram create(CodingProgram coding) {
         return repository.save(coding);
@@ -24,7 +28,7 @@ public class CodingProgramService {
 
     public CodingProgram getById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Coding Program not found"));
+                .orElseThrow(() -> new RuntimeException("Coding Program not found with id" +id));
     }
 
     public CodingProgram update(Long id, CodingProgram updated) {
@@ -38,6 +42,7 @@ public class CodingProgramService {
     }
 
     public void delete(Long id) {
-        repository.deleteById(id);
+    	CodingProgram coding = getById(id);
+        repository.delete(coding);
     }
 }

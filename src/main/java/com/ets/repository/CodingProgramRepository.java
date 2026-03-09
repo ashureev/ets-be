@@ -7,4 +7,6 @@ import com.ets.model.CodingProgram;
 
 @Repository
 public interface CodingProgramRepository extends JpaRepository<CodingProgram, Long> {
+	
+
 }
