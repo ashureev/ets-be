@@ -18,13 +18,6 @@ public class AttendanceController {
 
     private final AttendanceService service;
 
-//    @PostMapping("/check-in")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public String checkIn(@RequestParam String email) {
-//        return service.checkIn(email);
-//    }
-    
-    
     
     @PostMapping("/check-in")
     public ResponseEntity<String> checkIn(@RequestParam String email) {
