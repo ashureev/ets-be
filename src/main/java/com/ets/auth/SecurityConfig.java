@@ -92,6 +92,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/notifications/**").permitAll()
                 .requestMatchers("/api/reports/**").permitAll()
                 .requestMatchers("/api/users/**").permitAll()
+                .requestMatchers("/admin/tasks", "/admin/**").permitAll()
 
 
                 // ✅ ROLE BASED
