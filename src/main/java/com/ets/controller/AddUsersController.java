@@ -16,7 +16,7 @@ import com.ets.model.AddUsers;
 import com.ets.service.AddUsersService;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/admin/users")
 public class AddUsersController {
 
     private final AddUsersService addUsersService;

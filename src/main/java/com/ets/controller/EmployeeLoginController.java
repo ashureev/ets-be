@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ets.model.EmployeeLogin;
 import com.ets.service.EmployeeLoginService;
+import com.ets.repository.EmployeeRepository;
+import com.ets.auth.JwtService;
 
 @RestController
 @RequestMapping("/api/employee")
@@ -19,31 +21,86 @@ import com.ets.service.EmployeeLoginService;
 public class EmployeeLoginController {
 
     private final EmployeeLoginService employeeLoginService;
+    private final JwtService jwtService;
+    private final EmployeeRepository employeeRepository;
 
-    public EmployeeLoginController(EmployeeLoginService employeeLoginService) {
+    public EmployeeLoginController(EmployeeLoginService employeeLoginService, JwtService jwtService, EmployeeRepository employeeRepository) {
         this.employeeLoginService = employeeLoginService;
+        this.jwtService = jwtService;
+        this.employeeRepository = employeeRepository;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody EmployeeLogin employeeLogin) {
-        String response = employeeLoginService.register(employeeLogin);
+    public ResponseEntity<String> register(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.containsKey("emailAddress") ? request.get("emailAddress") : request.get("email");
+            String password = request.get("password");
+            String role = request.get("role");
 
-        if (response.equals("Employee already exists with this email")) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            if (email == null || email.isBlank() || password == null || password.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email or password missing in request");
+            }
+
+            EmployeeLogin employeeLogin = new EmployeeLogin();
+            employeeLogin.setEmailAddress(email);
+            employeeLogin.setPassword(password);
+            employeeLogin.setRole(role);
+
+            String response = employeeLoginService.register(employeeLogin);
+
+            if ("Employee already exists with this email".equals(response)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            }
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal error: " + e.getMessage());
         }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody EmployeeLogin employeeLogin) {
-        String response = employeeLoginService.login(employeeLogin);
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.containsKey("emailAddress") ? request.get("emailAddress") : request.get("email");
+            String password = request.get("password");
 
-        if (response.equals("Invalid email or password")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            if (email == null || email.isBlank() || password == null || password.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Email or password missing in request"));
+            }
+
+            EmployeeLogin employeeLogin = new EmployeeLogin();
+            employeeLogin.setEmailAddress(email);
+            employeeLogin.setPassword(password);
+
+            EmployeeLogin loggedInEmployee = employeeLoginService.login(employeeLogin);
+
+            if (loggedInEmployee == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid email or password"));
+            }
+
+            // Self-heal: Ensure the user exists in `emp_details` for Attendance/Tasks if they were only registered in employee_login natively
+            if (employeeRepository.findByEmail(loggedInEmployee.getEmailAddress()).isEmpty()) {
+                com.ets.model.Employee emp = new com.ets.model.Employee();
+                emp.setEmail(loggedInEmployee.getEmailAddress());
+                emp.setPassword(loggedInEmployee.getPassword());
+                emp.setRole(com.ets.enums.Role.EMPLOYEE);
+                emp.setUsername(loggedInEmployee.getEmailAddress().split("@")[0]);
+                employeeRepository.save(emp);
+            }
+
+            String role = loggedInEmployee.getRole() != null ? loggedInEmployee.getRole() : "EMPLOYEE";
+            String token = jwtService.createToken(loggedInEmployee.getEmailAddress(), role);
+
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "user", loggedInEmployee.getEmailAddress(),
+                    "role", role
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Internal error: " + e.getMessage()));
         }
-
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/forgot-password")

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -16,13 +17,22 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.ets.auth.JwtService;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final JwtService jwtService;
+
+    public SecurityConfig(JwtService jwtService) {
+        this.jwtService = jwtService;
+    }
 
     // Password Encoder
     @Bean
@@ -75,7 +85,7 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:5174"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -97,15 +107,18 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authenticationProvider(authenticationProvider(userDetailsService(passwordEncoder()), passwordEncoder()))
             .authorizeHttpRequests(auth -> auth
-
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers("/api/admin/login", "/api/admin/register", "/api/admin/forgot-password", "/api/admin/reset-password").permitAll()
+                    .requestMatchers("/api/employee/login", "/api/employee/register", "/api/employee/forgot-password", "/api/employee/reset-password").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/employee/**").hasRole("EMPLOYEE")
-                    .requestMatchers("/api/tasks/**").hasAnyRole("ADMIN","EMPLOYEE")
+                    .requestMatchers("/api/tasks/**", "/api/attendance/**", "/api/profiles/**", "/api/challenges/**", "/api/coding/**", "/api/notifications/**", "/api/employees/**").hasAnyRole("ADMIN", "EMPLOYEE")
                     .requestMatchers("/api/departments/**").hasAnyRole("ADMIN","EMPLOYEE")
 
                     .anyRequest().authenticated()
             )
-            .httpBasic(Customizer.withDefaults())
+            .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+            .httpBasic(basic -> basic.disable())
             .formLogin(form -> form.disable());
 
         return http.build();

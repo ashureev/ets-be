@@ -34,21 +34,21 @@ public class EmployeeLoginService {
 		return "Employee registered successfully";
 	}
 
-	public String login(EmployeeLogin employeeLogin) {
+	public EmployeeLogin login(EmployeeLogin employeeLogin) {
 		EmployeeLogin existingEmployee = employeeLoginRepository.findByEmailAddress(employeeLogin.getEmailAddress())
 				.orElse(null);
 
 		if (existingEmployee == null) {
-			return "Invalid email or password";
+			return null;
 		}
 
 		boolean passwordMatches = passwordEncoder.matches(employeeLogin.getPassword(), existingEmployee.getPassword());
 
 		if (!passwordMatches) {
-			return "Invalid email or password";
+			return null;
 		}
 
-		return "Login successful";
+		return existingEmployee;
 	}
 
 	public String forgotPassword(String emailAddress) {

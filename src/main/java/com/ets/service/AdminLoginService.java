@@ -34,7 +34,7 @@ public class AdminLoginService {
     }
 
     // LOGIN
-    public String adminLogin(String usernameOrEmail, String password) {
+    public AdminLoginUser adminLogin(String usernameOrEmail, String password) {
         AdminLoginUser user = findUserByUsernameOrEmail(usernameOrEmail);
 
         if (!user.isEnabled()) {
@@ -45,7 +45,7 @@ public class AdminLoginService {
             throw new RuntimeException("Invalid password");
         }
 
-        return "Welcome " + user.getUsername() + " (" + user.getRole().name() + ")";
+        return user;
     }
 
     // FORGOT PASSWORD

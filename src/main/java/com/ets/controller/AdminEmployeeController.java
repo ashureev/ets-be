@@ -12,7 +12,7 @@ import com.ets.model.AdminEmployee;
 import com.ets.service.AdminEmployeeService;
 
 @RestController
-@RequestMapping("/admin/employees")
+@RequestMapping("/api/admin/employees")
 public class AdminEmployeeController {
 
     private final AdminEmployeeService service;

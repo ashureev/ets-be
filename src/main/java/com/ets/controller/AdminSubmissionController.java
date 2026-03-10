@@ -52,13 +52,16 @@ public class AdminSubmissionController {
 
     // ✅ Pending Count (Correct Placement)
     @GetMapping("/pending/count")
-    public ResponseEntity<Map<String, Long>> pendingCount() {
-        long count = service.countPending();
-
-        Map<String, Long> response = new HashMap<>();
-        response.put("pendingCount", count);
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> pendingCount() {
+        try {
+            long count = service.countPending();
+            Map<String, Long> response = new HashMap<>();
+            response.put("pendingCount", count);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", "Internal Error: " + e.getMessage()));
+        }
     }
 }
 

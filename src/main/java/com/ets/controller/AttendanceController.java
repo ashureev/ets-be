@@ -27,8 +27,13 @@ public class AttendanceController {
 
     @PostMapping("/check-out")
     public ResponseEntity<String> checkOut(@RequestParam String email) {
-        String response = service.checkOut(email);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        try {
+            String response = service.checkOut(email);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/weekly")

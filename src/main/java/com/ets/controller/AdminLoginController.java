@@ -2,6 +2,7 @@ package com.ets.controller;
 
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,7 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-//import com.ets.dto.ResetPasswordRequest;
+import com.ets.auth.JwtService;
+import com.ets.model.AdminLoginUser;
 import com.ets.service.AdminLoginService;
 
 @RestController
@@ -18,24 +20,42 @@ import com.ets.service.AdminLoginService;
 public class AdminLoginController {
 
     private final AdminLoginService service;
+    private final JwtService jwtService;
 
-    public AdminLoginController(AdminLoginService service) {
+    public AdminLoginController(AdminLoginService service, JwtService jwtService) {
         this.service = service;
+        this.jwtService = jwtService;
     }
 
     // ✅ LOGIN
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+        try {
+            String username = body.get("username");
+            if (username == null) username = body.get("email");
+            if (username == null) username = body.get("emailAddress");
+            
+            String password = body.get("password");
 
-        String username = body.get("username");
-        String password = body.get("password");
+            if (username == null || username.isBlank() || password == null || password.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Username/Email or password missing in request"));
+            }
 
-        String result = service.adminLogin(username, password);
+            AdminLoginUser user = service.adminLogin(username, password);
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Login Success",
-                "result", result
-        ));
+            String role = user.getRole().name();
+            String token = jwtService.createToken(user.getUsername(), role);
+
+            return ResponseEntity.ok(Map.of(
+                    "role", role,
+                    "user", user.getUsername(),
+                    "token", token
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 
     // ✅ FORGOT PASSWORD (Send mail)

@@ -3,17 +3,38 @@ package com.ets.auth;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import com.ets.enums.ChallengeStatus;
 import com.ets.enums.DifficultyLevel;
+
 import com.ets.model.CodingChallenge;
+import com.ets.model.EmployeeSalaryManagement;
+import com.ets.model.Notification;
+import com.ets.model.AdminLoginUser;
+import com.ets.model.AdminAttendanceRecords;
 import com.ets.repository.CodingChallengeRepository;
+import com.ets.repository.EmployeeSalaryManagementRepository;
+import com.ets.repository.NotificationRepository;
+import com.ets.repository.EmployeeRepository;
+import com.ets.repository.AdminLoginUserRepository;
+import com.ets.repository.AdminAttendanceRecordRepository;
+import com.ets.enums.AttendenceStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Configuration
 public class DataLoader {
 
     @Bean
-    CommandLineRunner loadData(CodingChallengeRepository repository) {
+    CommandLineRunner loadData(CodingChallengeRepository repository, 
+                               EmployeeSalaryManagementRepository salaryRepository,
+                               NotificationRepository notificationRepository,
+                               EmployeeRepository employeeRepository,
+                               AdminLoginUserRepository adminRepository,
+                               AdminAttendanceRecordRepository attRepository,
+                               PasswordEncoder passwordEncoder) {
         return args -> {
             if (repository.count() == 0) {
 
@@ -41,6 +62,86 @@ public class DataLoader {
                 repository.save(twoSum);
                 repository.save(reverseLinkedList);
                 repository.save(validPalindrome);
+            }
+
+            if (salaryRepository.count() == 0) {
+                EmployeeSalaryManagement salary1 = new EmployeeSalaryManagement();
+                salary1.setEmployeeId(1L);
+                salary1.setCycle("Monthly");
+                salary1.setTransferDate(LocalDate.now().minusMonths(1));
+                salary1.setGross(new BigDecimal("50000"));
+                salary1.setDeductions(new BigDecimal("5000"));
+                salary1.setNetAmount(new BigDecimal("45000"));
+                salary1.setTransactionStatus("Completed");
+
+                EmployeeSalaryManagement salary2 = new EmployeeSalaryManagement();
+                salary2.setEmployeeId(1L);
+                salary2.setCycle("Monthly");
+                salary2.setTransferDate(LocalDate.now());
+                salary2.setGross(new BigDecimal("52000"));
+                salary2.setDeductions(new BigDecimal("5200"));
+                salary2.setNetAmount(new BigDecimal("46800"));
+                salary2.setTransactionStatus("Pending");
+
+                salaryRepository.save(salary1);
+                salaryRepository.save(salary2);
+            }
+
+            if (notificationRepository.count() == 0) {
+                // We need an employee to attach notifications to. 
+                // Since our testuser@gmail.com is created via controller login, 
+                // it might not exist during app startup until first login.
+                // Let's seed a base employee for testing UI if they're missing.
+                String testEmail = "testuser@gmail.com";
+                com.ets.model.Employee employee = employeeRepository.findByEmail(testEmail).orElse(null);
+                
+                if (employee == null) {
+                    employee = new com.ets.model.Employee();
+                    employee.setEmail(testEmail);
+                    employee.setUsername("testuser");
+                    employee.setRole(com.ets.enums.Role.EMPLOYEE);
+                    employee.setPassword("testpwd");
+                    employeeRepository.save(employee);
+                }
+
+                Notification n1 = Notification.builder()
+                        .employee(employee)
+                        .title("Welcome to ETS!")
+                        .message("We're glad to have you here. Explore your dashboard to get started.")
+                        .timestamp(LocalDateTime.now().minusHours(2))
+                        .isRead(false)
+                        .build();
+
+                Notification n2 = Notification.builder()
+                        .employee(employee)
+                        .title("New Coding Challenge")
+                        .message("A new challenge 'Two Sum' has been assigned to you. Go check it out!")
+                        .timestamp(LocalDateTime.now().minusMinutes(45))
+                        .isRead(false)
+                        .build();
+
+                notificationRepository.save(n1);
+                notificationRepository.save(n2);
+            }
+
+            if (adminRepository.count() == 0) {
+                AdminLoginUser admin = new AdminLoginUser();
+                admin.setUsername("admin");
+                admin.setEmail("admin@ets.com");
+                admin.setPasswordHash(passwordEncoder.encode("admin123"));
+                admin.setRole(com.ets.enums.Role.ADMIN);
+                admin.setEnabled(true);
+                adminRepository.save(admin);
+            }
+
+            if (attRepository.count() == 0) {
+                AdminAttendanceRecords rec = new AdminAttendanceRecords();
+                rec.setName("testuser");
+                rec.setDate(LocalDate.now());
+                rec.setStatus(AttendenceStatus.PRESENT);
+                rec.setLoginTime(LocalTime.of(9, 0));
+                rec.setLogoutTime(LocalTime.of(18, 0));
+                attRepository.save(rec);
             }
         };
     }

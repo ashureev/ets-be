@@ -15,7 +15,7 @@ import com.ets.model.AdminTaskStatus;
 import com.ets.service.AdminTaskStatusService;
 
 @RestController
-@RequestMapping("/admin/tasks")
+@RequestMapping("/api/admin/tasks")
 public class AdminTaskStatusController {
 
     @Autowired

@@ -56,7 +56,7 @@ public class AttendanceService {
     public String checkIn(String email) {
 
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new RuntimeException("CheckIn Error: Employee not found for email " + email));
 
         if (attendanceRepository
                 .findByEmployeeAndDate(employee, LocalDate.now())
@@ -80,11 +80,11 @@ public class AttendanceService {
     public String checkOut(String email) {
 
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new RuntimeException("CheckOut Error: Employee not found for email " + email));
 
         Attendance attendance = attendanceRepository
                 .findByEmployeeAndDate(employee, LocalDate.now())
-                .orElseThrow(() -> new RuntimeException("No check-in found"));
+                .orElseThrow(() -> new RuntimeException("CheckOut Error: No check-in found today."));
 
         attendance.setLogoutTime(LocalDateTime.now());
 

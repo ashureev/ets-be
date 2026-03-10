@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +22,7 @@ import com.ets.model.EmployeeSalaryManagement;
 import com.ets.service.EmployeeSalaryManagementService;
 
 @RestController
-@RequestMapping("/employee-salary-management")
+@RequestMapping("/api/employee/salary")
 @CrossOrigin(origins = "*")
 public class EmployeeSalaryManagementController {
 
@@ -29,75 +30,112 @@ public class EmployeeSalaryManagementController {
     private EmployeeSalaryManagementService service;
 
     @PostMapping("/save")
-    public EmployeeSalaryManagement saveSalary(@RequestBody EmployeeSalaryManagement employeeSalaryManagement) {
-        return service.saveSalary(employeeSalaryManagement);
+    public ResponseEntity<?> saveSalary(@RequestBody EmployeeSalaryManagement employeeSalaryManagement) {
+        try {
+            return ResponseEntity.ok(service.saveSalary(employeeSalaryManagement));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/employee/{employeeId}")
-    public List<EmployeeSalaryManagement> getAllSalaryByEmployeeId(@PathVariable Long employeeId) {
-        return service.getAllSalaryByEmployeeId(employeeId);
+    public ResponseEntity<?> getAllSalaryByEmployeeId(@PathVariable Long employeeId) {
+        try {
+            return ResponseEntity.ok(service.getAllSalaryByEmployeeId(employeeId));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/id/{id}")
-    public EmployeeSalaryManagement getSalaryById(@PathVariable Long id) {
-        return service.getSalaryById(id);
+    public ResponseEntity<?> getSalaryById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(service.getSalaryById(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PutMapping("/update/{id}")
-    public EmployeeSalaryManagement updateSalary(@PathVariable Long id,
-                                                 @RequestBody EmployeeSalaryManagement employeeSalaryManagement) {
-        return service.updateSalary(id, employeeSalaryManagement);
+    public ResponseEntity<?> updateSalary(@PathVariable Long id,
+                                         @RequestBody EmployeeSalaryManagement employeeSalaryManagement) {
+        try {
+            return ResponseEntity.ok(service.updateSalary(id, employeeSalaryManagement));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteSalary(@PathVariable Long id) {
-        service.deleteSalary(id);
-        return "Salary record deleted successfully";
+    public ResponseEntity<?> deleteSalary(@PathVariable Long id) {
+        try {
+            service.deleteSalary(id);
+            return ResponseEntity.ok(Map.of("message", "Salary record deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/filter")
-    public List<EmployeeSalaryManagement> getFilteredSalary(
+    public ResponseEntity<?> getFilteredSalary(
             @RequestParam Long employeeId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
-        return service.getFilteredSalary(employeeId, year, month);
+        try {
+            return ResponseEntity.ok(service.getFilteredSalary(employeeId, year, month));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/pagination")
-    public Page<EmployeeSalaryManagement> getSalaryWithPagination(
+    public ResponseEntity<?> getSalaryWithPagination(
             @RequestParam Long employeeId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        return service.getSalaryWithPagination(employeeId, year, month, page, size);
+        try {
+            return ResponseEntity.ok(service.getSalaryWithPagination(employeeId, year, month, page, size));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/summary")
-    public Map<String, BigDecimal> getSalarySummary(
+    public ResponseEntity<?> getSalarySummary(
             @RequestParam Long employeeId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
-        return service.getSalarySummary(employeeId, year, month);
+        try {
+            return ResponseEntity.ok(service.getSalarySummary(employeeId, year, month));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/dashboard")
-    public Map<String, Object> getDashboardData(
+    public ResponseEntity<?> getDashboardData(
             @RequestParam Long employeeId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
+        try {
+            Map<String, BigDecimal> summary = service.getSalarySummary(employeeId, year, month);
+            Page<EmployeeSalaryManagement> records = service.getSalaryWithPagination(employeeId, year, month, page, size);
 
-        Map<String, BigDecimal> summary = service.getSalarySummary(employeeId, year, month);
-        Page<EmployeeSalaryManagement> records = service.getSalaryWithPagination(employeeId, year, month, page, size);
+            Map<String, Object> result = new java.util.HashMap<>();
+            result.put("summary", summary);
+            result.put("records", records != null ? records.getContent() : List.of());
+            result.put("currentPage", records != null ? records.getNumber() : 0);
+            result.put("totalPages", records != null ? records.getTotalPages() : 0);
+            result.put("totalRecords", records != null ? records.getTotalElements() : 0);
 
-        return Map.of(
-                "summary", summary,
-                "records", records.getContent(),
-                "currentPage", records.getNumber(),
-                "totalPages", records.getTotalPages(),
-                "totalRecords", records.getTotalElements()
-        );
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("message", "Dashboard Error: " + e.getMessage()));
+        }
     }
 }
