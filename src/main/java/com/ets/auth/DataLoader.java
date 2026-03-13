@@ -13,13 +13,6 @@ import com.ets.model.AddUsers;
 import com.ets.model.AdminLoginUser;
 import com.ets.model.AdminAttendanceRecords;
 import com.ets.model.Employee;
-import com.ets.repository.CodingChallengeRepository;
-import com.ets.repository.EmployeeSalaryManagementRepository;
-import com.ets.repository.NotificationRepository;
-import com.ets.repository.EmployeeRepository;
-import com.ets.repository.AdminLoginUserRepository;
-import com.ets.repository.AdminAttendanceRecordRepository;
-import com.ets.repository.AddUsersRepository;
 import com.ets.enums.AttendenceStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.math.BigDecimal;
@@ -31,13 +24,14 @@ import java.time.LocalTime;
 public class DataLoader {
 
     @Bean
-    CommandLineRunner loadData(CodingChallengeRepository repository,
-            EmployeeSalaryManagementRepository salaryRepository,
-            NotificationRepository notificationRepository,
-            EmployeeRepository employeeRepository,
-            AdminLoginUserRepository adminRepository,
-            AdminAttendanceRecordRepository attRepository,
-            AddUsersRepository addUsersRepository,
+    CommandLineRunner loadData(com.ets.repository.CodingChallengeRepository repository,
+            com.ets.repository.EmployeeSalaryManagementRepository salaryRepository,
+            com.ets.repository.NotificationRepository notificationRepository,
+            com.ets.repository.EmployeeRepository employeeRepository,
+            com.ets.repository.AdminLoginUserRepository adminRepository,
+            com.ets.repository.AdminAttendanceRecordRepository attRepository,
+            com.ets.repository.AddUsersRepository addUsersRepository,
+            com.ets.repository.EmployeeLoginRepository employeeLoginRepository,
             PasswordEncoder passwordEncoder) {
         return args -> {
             if (repository.count() == 0) {
@@ -93,10 +87,6 @@ public class DataLoader {
             }
 
             if (notificationRepository.count() == 0) {
-                // We need an employee to attach notifications to.
-                // Since our testuser@gmail.com is created via controller login,
-                // it might not exist during app startup until first login.
-                // Let's seed a base employee for testing UI if they're missing.
                 String testEmail = "testuser@gmail.com";
                 com.ets.model.Employee employee = employeeRepository.findByEmail(testEmail).orElse(null);
 
@@ -105,7 +95,7 @@ public class DataLoader {
                     employee.setEmail(testEmail);
                     employee.setUsername("testuser");
                     employee.setRole(com.ets.enums.Role.EMPLOYEE);
-                    employee.setPassword("testpwd");
+                    employee.setPassword(passwordEncoder.encode("testpwd"));
                     employeeRepository.save(employee);
                 }
 
@@ -158,7 +148,6 @@ public class DataLoader {
                 suneetha.setDept("Engineering");
                 addUsersRepository.save(suneetha);
 
-                // Also add other mock names for consistency with the frontend image
                 String[] names = { "Sravani", "Arjun", "Chandrasekar", "Siva" };
                 String[] emails = { "sravani@aja.com", "arjun@aja.com", "chandrasekar@aja.com", "siva@aja.com" };
                 for (int i = 0; i < names.length; i++) {
@@ -172,7 +161,16 @@ public class DataLoader {
                 }
             }
 
-            // Ensure Suneetha is also in the Employee table for login/roles if needed
+            // Sync Suneetha to EmployeeLogin if missing
+            if (employeeLoginRepository.findByEmailAddress("suneetha@aja.com").isEmpty()) {
+                com.ets.model.EmployeeLogin login = new com.ets.model.EmployeeLogin();
+                login.setEmailAddress("suneetha@aja.com");
+                login.setPassword(passwordEncoder.encode("SUNI_PWD_2026"));
+                login.setRole("EMPLOYEE");
+                employeeLoginRepository.save(login);
+            }
+
+            // Sync Suneetha to Employee table if missing
             if (employeeRepository.findByEmail("suneetha@aja.com").isEmpty()) {
                 Employee suneethaEmp = new Employee();
                 suneethaEmp.setUsername("Suneetha");
@@ -180,6 +178,24 @@ public class DataLoader {
                 suneethaEmp.setPassword(passwordEncoder.encode("SUNI_PWD_2026"));
                 suneethaEmp.setRole(com.ets.enums.Role.EMPLOYEE);
                 employeeRepository.save(suneethaEmp);
+            }
+
+            // Add standard employee@gmail.com for UI Sandbox consistency
+            if (employeeLoginRepository.findByEmailAddress("employee@gmail.com").isEmpty()) {
+                com.ets.model.EmployeeLogin login = new com.ets.model.EmployeeLogin();
+                login.setEmailAddress("employee@gmail.com");
+                login.setPassword(passwordEncoder.encode("emp123"));
+                login.setRole("EMPLOYEE");
+                employeeLoginRepository.save(login);
+            }
+
+            if (employeeRepository.findByEmail("employee@gmail.com").isEmpty()) {
+                com.ets.model.Employee emp = new com.ets.model.Employee();
+                emp.setUsername("Standard Employee");
+                emp.setEmail("employee@gmail.com");
+                emp.setPassword(passwordEncoder.encode("emp123"));
+                emp.setRole(com.ets.enums.Role.EMPLOYEE);
+                employeeRepository.save(emp);
             }
         };
     }

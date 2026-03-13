@@ -49,6 +49,16 @@ import com.ets.service.AdminDepartmentService;
 	        service.deleteDepartment(id);
 	        return ResponseEntity.ok("Department deleted successfully");
 	    }
+
+	    // 🔄 Update Department
+	    @PutMapping("/{id}")
+	    public ResponseEntity<AdminDepartment> updateDepartment(
+	            @PathVariable Long id,
+	            @RequestBody AdminDepartment request) {
+
+	        AdminDepartment updated = service.updateDepartment(id, request.getName());
+	        return ResponseEntity.ok(updated);
+	    }
 	}
 	
 	

@@ -10,10 +10,14 @@ import com.ets.repository.EmployeeLoginRepository;
 public class EmployeeLoginService {
 
 	private final EmployeeLoginRepository employeeLoginRepository;
+	private final com.ets.repository.AddUsersRepository addUsersRepository;
 	private final PasswordEncoder passwordEncoder;
 
-	public EmployeeLoginService(EmployeeLoginRepository employeeLoginRepository, PasswordEncoder passwordEncoder) {
+	public EmployeeLoginService(EmployeeLoginRepository employeeLoginRepository, 
+                                com.ets.repository.AddUsersRepository addUsersRepository,
+                                PasswordEncoder passwordEncoder) {
 		this.employeeLoginRepository = employeeLoginRepository;
+		this.addUsersRepository = addUsersRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
 
@@ -39,6 +43,21 @@ public class EmployeeLoginService {
 				.orElse(null);
 
 		if (existingEmployee == null) {
+            // Fallback for admin-added users from AddUsers table
+            com.ets.model.AddUsers adminAddedUser = addUsersRepository.findByEmailAddress(employeeLogin.getEmailAddress())
+                    .orElse(null);
+            
+            if (adminAddedUser != null) {
+                // Check against the raw password in AddUsers (admin-added users have raw passwords there)
+                if (employeeLogin.getPassword().equals(adminAddedUser.getAccessPassword())) {
+                    // Create an EmployeeLogin entry so future logins are standardized
+                    EmployeeLogin newLogin = new EmployeeLogin();
+                    newLogin.setEmailAddress(adminAddedUser.getEmailAddress());
+                    newLogin.setPassword(passwordEncoder.encode(adminAddedUser.getAccessPassword()));
+                    newLogin.setRole("EMPLOYEE");
+                    return employeeLoginRepository.save(newLogin);
+                }
+            }
 			return null;
 		}
 

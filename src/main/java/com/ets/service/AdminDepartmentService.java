@@ -35,7 +35,7 @@ public class AdminDepartmentService {
         return repository.findAll();
     }
 
- // ✅ Delete Department
+    // ✅ Delete Department
     public void deleteDepartment(Long id) {
 
         if (!repository.existsById(id)) {
@@ -43,5 +43,18 @@ public class AdminDepartmentService {
         }
 
         repository.deleteById(id);
+    }
+
+    // ✅ Update Department
+    public AdminDepartment updateDepartment(Long id, String name) {
+        AdminDepartment department = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Department not found with id: " + id));
+
+        if (repository.existsByName(name) && !department.getName().equals(name)) {
+            throw new RuntimeException("Department with name " + name + " already exists");
+        }
+
+        department.setName(name);
+        return repository.save(department);
     }
 }

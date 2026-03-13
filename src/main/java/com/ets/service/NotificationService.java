@@ -6,9 +6,7 @@ import com.ets.repository.NotificationRepository;
 import com.ets.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -36,27 +34,10 @@ public class NotificationService {
         return notificationRepository.countByEmployeeAndReadFalse(employee);
     }
 
-    @Transactional
-    public void markAsRead(Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId)
+    public void markAsRead(Long id) {
+        Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
         notification.setRead(true);
-        notificationRepository.save(notification);
-    }
-
-    @Transactional
-    public void createNotification(String email, String title, String message) {
-        Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
-        
-        Notification notification = Notification.builder()
-                .employee(employee)
-                .title(title)
-                .message(message)
-                .timestamp(LocalDateTime.now())
-                .read(false)
-                .build();
-        
         notificationRepository.save(notification);
     }
 }
