@@ -17,7 +17,7 @@ public class AdminSalaryManagement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "employee_code", nullable = false, unique = true)
+    @Column(name = "employee_code", nullable = false)
     private String employeeCode;
 
     @Column(name = "employee_name", nullable = false)

@@ -20,8 +20,12 @@ public class AdminSalaryManagementController {
     }
 
     @PostMapping
-    public ResponseEntity<AdminSalaryManagement> createSalary(@RequestBody AdminSalaryManagement salary) {
-        return ResponseEntity.ok(service.saveSalary(salary));
+    public ResponseEntity<?> createSalary(@RequestBody AdminSalaryManagement salary) {
+        try {
+            return ResponseEntity.ok(service.saveSalary(salary));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error creating salary: " + e.getMessage());
+        }
     }
 
     @GetMapping

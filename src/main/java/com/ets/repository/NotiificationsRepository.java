@@ -11,5 +11,5 @@ import com.ets.model.Notiifications;
 @Repository
 public interface NotiificationsRepository extends JpaRepository<Notiifications, Long> {
 
-    List<Notiifications> findByIsRead(boolean isRead);
+    List<Notiifications> findByRead(boolean read);
 }

@@ -18,11 +18,6 @@ public class AdminSalaryManagementService {
     }
 
     public AdminSalaryManagement saveSalary(AdminSalaryManagement salary) {
-        repository.findByEmployeeCode(salary.getEmployeeCode())
-                .ifPresent(existing -> {
-                    throw new RuntimeException("Employee code already exists: " + salary.getEmployeeCode());
-                });
-
         return repository.save(salary);
     }
 
@@ -52,11 +47,6 @@ public class AdminSalaryManagementService {
 
         if (salary.getEmployeeCode() != null &&
                 !salary.getEmployeeCode().equals(existing.getEmployeeCode())) {
-
-            repository.findByEmployeeCode(salary.getEmployeeCode())
-                    .ifPresent(record -> {
-                        throw new RuntimeException("Employee code already exists: " + salary.getEmployeeCode());
-                    });
         }
 
         existing.setEmployeeCode(salary.getEmployeeCode());

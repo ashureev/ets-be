@@ -22,7 +22,8 @@ public class Notiifications {
 
     private String type; // INFO, WARNING, ALERT, etc.
 
-    private boolean isRead = false;
+    @Column(name = "is_read")
+    private boolean read = false;
 
     private LocalDateTime createdAt;
 

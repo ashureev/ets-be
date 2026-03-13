@@ -27,13 +27,13 @@ public class NotificationService {
     public List<Notification> getUnreadNotificationsForEmployee(String email) {
         Employee employee = employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
-        return notificationRepository.findByEmployeeAndIsReadFalseOrderByTimestampDesc(employee);
+        return notificationRepository.findByEmployeeAndReadFalseOrderByTimestampDesc(employee);
     }
 
     public long getUnreadCount(String email) {
         Employee employee = employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
-        return notificationRepository.countByEmployeeAndIsReadFalse(employee);
+        return notificationRepository.countByEmployeeAndReadFalse(employee);
     }
 
     @Transactional
@@ -54,7 +54,7 @@ public class NotificationService {
                 .title(title)
                 .message(message)
                 .timestamp(LocalDateTime.now())
-                .isRead(false)
+                .read(false)
                 .build();
         
         notificationRepository.save(notification);

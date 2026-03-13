@@ -24,7 +24,7 @@ public class NotiificationsService {
     }
 
     public List<Notiifications> getUnreadNotifications() {
-        return notiificationsRepository.findByIsRead(false);
+        return notiificationsRepository.findByRead(false);
     }
 
     public Notiifications createNotification(Notiifications notiification) {

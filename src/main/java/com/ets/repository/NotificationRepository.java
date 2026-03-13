@@ -10,5 +10,6 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByEmployeeOrderByTimestampDesc(Employee employee);
-    long countByEmployeeAndIsReadFalse(Employee employee);
+    List<Notification> findByEmployeeAndReadFalseOrderByTimestampDesc(Employee employee);
+    long countByEmployeeAndReadFalse(Employee employee);
 }

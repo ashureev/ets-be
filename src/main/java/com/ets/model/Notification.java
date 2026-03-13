@@ -21,7 +21,9 @@ public class Notification {
     private String title;
     private String message;
     private LocalDateTime timestamp;
-    private boolean isRead;
+    @Builder.Default
+    @Column(name = "is_read")
+    private boolean read = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
