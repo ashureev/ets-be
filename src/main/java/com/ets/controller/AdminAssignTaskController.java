@@ -1,6 +1,9 @@
 package com.ets.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.ets.model.AdminAssignTask;
@@ -14,19 +17,26 @@ public class AdminAssignTaskController {
     @Autowired
     private AdminAssignTaskService service;
 
+    @GetMapping
+    public ResponseEntity<List<AdminAssignTask>> getAllTasks() {
+        List<AdminAssignTask> tasks = service.getAllTasks();
+        return ResponseEntity.ok(tasks);
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<AdminAssignTask> createTask(@RequestBody AdminAssignTask task){
+    public ResponseEntity<AdminAssignTask> createTask(@RequestBody AdminAssignTask task) {
         AdminAssignTask savedTask = service.createTask(task);
         return ResponseEntity.ok(savedTask);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteTask(@PathVariable Long id){
+    public ResponseEntity<String> deleteTask(@PathVariable Long id) {
         service.deleteTask(id);
         return ResponseEntity.ok("Task Deleted Successfully");
     }
 
 }
+
 
 
 

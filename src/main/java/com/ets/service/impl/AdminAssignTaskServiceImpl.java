@@ -1,5 +1,7 @@
 package com.ets.service.impl;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +17,17 @@ public class AdminAssignTaskServiceImpl implements AdminAssignTaskService {
 
     @Override
     public AdminAssignTask createTask(AdminAssignTask task) {
-
         return repository.save(task);
     }
 
     @Override
     public void deleteTask(Long id) {
-
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<AdminAssignTask> getAllTasks() {
+        return repository.findAll();
     }
 
 }

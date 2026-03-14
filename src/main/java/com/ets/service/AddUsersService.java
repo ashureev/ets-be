@@ -15,15 +15,24 @@ public class AddUsersService {
     private final com.ets.repository.EmployeeLoginRepository employeeLoginRepository;
     private final com.ets.repository.EmployeeRepository employeeRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final SmsService smsService;
+    private final com.ets.repository.NotiificationsRepository notificationsRepository;
 
     public AddUsersService(AddUsersRepository addUsersRepository,
                           com.ets.repository.EmployeeLoginRepository employeeLoginRepository,
                           com.ets.repository.EmployeeRepository employeeRepository,
-                          org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+                          org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
+                          EmailService emailService,
+                          SmsService smsService,
+                          com.ets.repository.NotiificationsRepository notificationsRepository) {
         this.addUsersRepository = addUsersRepository;
         this.employeeLoginRepository = employeeLoginRepository;
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+        this.smsService = smsService;
+        this.notificationsRepository = notificationsRepository;
     }
 
     public AddUsers saveUser(AddUsers addUsers) {
@@ -51,6 +60,32 @@ public class AddUsersService {
             emp.setPassword(passwordEncoder.encode(addUsers.getAccessPassword()));
             emp.setRole(com.ets.enums.Role.EMPLOYEE);
             employeeRepository.save(emp);
+        }
+
+        // Generate a 6-digit OTP
+        String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
+
+        // Send Notifications
+        try {
+            emailService.sendRegistrationEmail(savedUser.getEmailAddress(), savedUser.getNameUsername(), savedUser.getPhone(), otp);
+            if (savedUser.getPhone() != null && !savedUser.getPhone().isEmpty()) {
+                smsService.sendRegistrationSms(savedUser.getPhone(), savedUser.getNameUsername(), otp);
+            }
+        } catch (Exception e) {
+            // Log notice but don't fail registration if notification fails
+            System.err.println("Notification Error: " + e.getMessage());
+        }
+
+        // Add System Notification for Dashboard visibility
+        try {
+            com.ets.model.Notiifications notification = new com.ets.model.Notiifications();
+            notification.setTitle("New Registration");
+            notification.setMessage("New employee registered: " + savedUser.getNameUsername() + " (" + savedUser.getEmailAddress() + ")");
+            notification.setType("SUCCESS");
+            notification.setCreatedAt(java.time.LocalDateTime.now());
+            notificationsRepository.save(notification);
+        } catch (Exception e) {
+            System.err.println("Error creating system notification: " + e.getMessage());
         }
         
         return savedUser;

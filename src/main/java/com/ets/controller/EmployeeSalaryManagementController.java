@@ -22,7 +22,7 @@ import com.ets.model.EmployeeSalaryManagement;
 import com.ets.service.EmployeeSalaryManagementService;
 
 @RestController
-@RequestMapping("/api/employee/salary")
+@RequestMapping("/api/employee-salary-management")
 @CrossOrigin(origins = "*")
 public class EmployeeSalaryManagementController {
 
@@ -33,6 +33,15 @@ public class EmployeeSalaryManagementController {
     public ResponseEntity<?> saveSalary(@RequestBody EmployeeSalaryManagement employeeSalaryManagement) {
         try {
             return ResponseEntity.ok(service.saveSalary(employeeSalaryManagement));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllSalaries() {
+        try {
+            return ResponseEntity.ok(service.getAllSalaries());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
         }

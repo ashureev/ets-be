@@ -31,6 +31,10 @@ public class EmployeeSalaryManagementService {
         return repository.save(employeeSalaryManagement);
     }
 
+    public List<EmployeeSalaryManagement> getAllSalaries() {
+        return repository.findAll();
+    }
+
     public List<EmployeeSalaryManagement> getAllSalaryByEmployeeId(Long employeeId) {
         return repository.findByEmployeeId(employeeId);
     }
