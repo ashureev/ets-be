@@ -8,22 +8,22 @@ import com.ets.service.AdminAssignTaskService;
 
 @RestController
 @RequestMapping("/api/admin/assign/tasks")
+@CrossOrigin(origins = "*")
 public class AdminAssignTaskController {
 
     @Autowired
     private AdminAssignTaskService service;
 
     @PostMapping("/create")
-    public AdminAssignTask createTask(@RequestBody AdminAssignTask task){
-
-        return service.createTask(task);
+    public ResponseEntity<AdminAssignTask> createTask(@RequestBody AdminAssignTask task){
+        AdminAssignTask savedTask = service.createTask(task);
+        return ResponseEntity.ok(savedTask);
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteTask(@PathVariable Long id){
-
+    public ResponseEntity<String> deleteTask(@PathVariable Long id){
         service.deleteTask(id);
-        return "Task Deleted Successfully";
+        return ResponseEntity.ok("Task Deleted Successfully");
     }
 
 }
