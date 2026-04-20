@@ -61,7 +61,7 @@ jobs:
           load: true
           tags: ets-be:latest
           cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp.buildx-cache-new,mode=max
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
       - name: Run Trivy scanner
         uses: aquasecurity/trivy-action@master
         with:
